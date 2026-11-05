@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Parking – Login</title>
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-dark:    #1a1a1a;
+      --bg-card:    #242424;
+      --bg-input:   #2e2e2e;
+      --border:     #3a3a3a;
+      --text-main:  #ffffff;
+      --text-muted: #888888;
+      --text-ph:    #555555;
+      --accent:     #4f8ef7;
+      --accent-h:   #3a7ae8;
+      --google-bg:  #2a2a2a;
+      --fb-bg:      #2a2a2a;
+      --link:       #4f8ef7;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #111;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    /* ===== PHONE SHELL ===== */
+    .phone {
+      width: 375px;
+      height: 812px;
+      background: var(--bg-dark);
+      border-radius: 44px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 30px 90px rgba(0,0,0,.8), 0 0 0 1px #333;
+    }
+
+    /* ===== STATUS BAR ===== */
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px 4px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-main);
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      z-index: 10;
+    }
+    .status-bar .icons { display: flex; gap: 6px; align-items: center; }
+    .status-bar svg { fill: white; }
+
+    /* ===== SCREENS ===== */
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      transition: transform .4s cubic-bezier(.4,0,.2,1), opacity .4s;
+    }
+    .screen.hidden-left  { transform: translateX(-100%); opacity: 0; pointer-events: none; }
+    .screen.hidden-right { transform: translateX(100%);  opacity: 0; pointer-events: none; }
+    .screen.active       { transform: translateX(0);     opacity: 1; pointer-events: all; }
+
+    /* ===== SCREEN 1 – SPLASH ===== */
+    #screen-splash {
+      justify-content: flex-end;
+      padding-bottom: 50px;
+    }
+    .splash-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(to bottom, transparent 40%, rgba(0,0,0,.55) 65%, var(--bg-dark) 100%),
+        url('https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=800&q=80') center/cover no-repeat;
+      filter: brightness(.85);
+    }
+    .splash-content {
+      position: relative;
+      z-index: 2;
+      padding: 0 32px;
+      text-align: center;
+    }
+    .splash-content h1 {
+      font-size: 26px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+    .splash-content p {
+      font-size: 13px;
+      color: rgba(255,255,255,.65);
+      line-height: 1.6;
+      margin-bottom: 36px;
+    }
+    .btn-primary {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+    }
+    .btn-primary:hover  { background: var(--accent-h); }
+    .btn-primary:active { transform: scale(.97); }
+
+    /* ===== SCREENS 2 & 3 – FORMS ===== */
+    .form-screen {
+      background: var(--bg-dark);
+      padding-top: 44px;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+    .form-screen::-webkit-scrollbar { display: none; }
+
+    .form-body {
+      padding: 24px 24px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .form-header h2 {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+    .form-header p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* ===== FIELD ===== */
+    .field { display: flex; flex-direction: column; gap: 7px; }
+    .field label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .input-wrap input {
+      width: 100%;
+      padding: 13px 42px 13px 14px;
+      background: var(--bg-input);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-main);
+      font-size: 14px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .input-wrap input::placeholder { color: var(--text-ph); }
+    .input-wrap input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79,142,247,.18);
+    }
+    .toggle-pw {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      padding: 4px;
+    }
+    .toggle-pw:hover { color: var(--text-main); }
+
+    /* ===== CHECKBOX ===== */
+    .check-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .check-row input[type="checkbox"] {
+      width: 16px; height: 16px;
+      accent-color: var(--accent);
+      flex-shrink: 0;
+      margin-top: 2px;
+      cursor: pointer;
+    }
+    .check-row a { color: var(--link); text-decoration: none; }
+    .check-row a:hover { text-decoration: underline; }
+
+    /* ===== FORGOT ===== */
+    .forgot-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: -8px;
+    }
+    .forgot-row a {
+      font-size: 12px;
+      color: var(--link);
+      text-decoration: none;
+    }
+    .forgot-row a:hover { text-decoration: underline; }
+
+    /* ===== DIVIDER ===== */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ===== SOCIAL BUTTONS ===== */
+    .social-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 13px;
+      background: var(--google-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-main);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, border-color .2s;
+    }
+    .social-btn:hover { background: #333; border-color: #555; }
+    .social-btn img { width: 20px; height: 20px; }
+
+    /* Google G icon inline */
+    .g-icon {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: white;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .g-icon svg { width: 14px; height: 14px; }
+
+    /* Facebook icon */
+    .fb-icon {
+      width: 20px; height: 20px;
+      border-radius: 4px;
+      background: #1877F2;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .fb-icon svg { width: 12px; height: 12px; fill: white; }
+
+    /* ===== BOTTOM LINK ===== */
+    .bottom-link {
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-muted);
+      padding-bottom: 8px;
+    }
+    .bottom-link a {
+      color: var(--link);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .bottom-link a:hover { text-decoration: underline; }
+
+    /* ===== SUCCESS TOAST ===== */
+    .toast {
+      position: absolute;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #22c55e;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 24px;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      opacity: 0;
+      transition: all .3s;
+      z-index: 999;
+      pointer-events: none;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ===== HOME / BACK NAV ===== */
+    .nav-back {
+      position: absolute;
+      top: 48px; left: 20px;
+      z-index: 20;
+      background: rgba(255,255,255,.08);
+      border: none;
+      border-radius: 50%;
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .nav-back:hover { background: rgba(255,255,255,.18); }
+    .nav-back svg { fill: white; }
+
+    /* ===== ERROR MSG ===== */
+    .err-msg {
+      font-size: 11px;
+      color: #ef4444;
+      margin-top: -10px;
+      display: none;
+    }
+    .field.has-error .input-wrap input { border-color: #ef4444; }
+    .field.has-error .err-msg { display: block; }
+
+    /* ===== LOADING SPINNER ===== */
+    .spinner {
+      display: none;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn-primary.loading .spinner { display: inline-block; }
+    .btn-primary.loading .btn-text { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="phone">
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="icons">
+      <!-- Signal -->
+      <svg width="16" height="12" viewBox="0 0 16 12">
+        <rect x="0" y="8" width="3" height="4" rx="1"/>
+        <rect x="4.5" y="5" width="3" height="7" rx="1"/>
+        <rect x="9" y="2" width="3" height="10" rx="1"/>
+        <rect x="13.5" y="0" width="2.5" height="12" rx="1"/>
+      </svg>
+      <!-- WiFi -->
+      <svg width="16" height="12" viewBox="0 0 24 18">
+        <path d="M12 14a2 2 0 110 4 2 2 0 010-4zm0-5a7 7 0 015.66 2.88l-2.12 2.12A4 4 0 0012 12a4 4 0 00-3.54 2L6.34 11.9A7 7 0 0112 9zm0-5a12 12 0 019.19 4.33L19.07 10.4A9 9 0 0012 7a9 9 0 00-7.07 3.4L2.81 8.33A12 12 0 0112 4z" fill-rule="evenodd"/>
+      </svg>
+      <!-- Battery -->
+      <svg width="22" height="11" viewBox="0 0 22 11">
+        <rect x="0" y="1" width="19" height="9" rx="2" stroke="white" stroke-width="1.5" fill="none"/>
+        <rect x="1.5" y="2.5" width="13" height="6" rx="1" fill="white"/>
+        <path d="M20 3.5v4a2 2 0 000-4z"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ==============================
+       SCREEN 1 – SPLASH
+  =============================== -->
+  <div id="screen-splash" class="screen active">
+    <div class="splash-bg"></div>
+    <div class="splash-content">
+      <h1>Nikmati parkir lebih cepat dan nggak bikin ribet</h1>
+      <p>Dukung mobilitas pintar dengan parkir kendaraan anda menggunakan smart parking, smart living</p>
+      <button class="btn-primary" onclick="goTo('screen-daftar')">
+        <span class="btn-text">Get Started</span>
+        <div class="spinner"></div>
+      </button>
+    </div>
+  </div>
+
+  <!-- ==============================
+       SCREEN 2 – DAFTAR (Register)
+  =============================== -->
+  <div id="screen-daftar" class="screen hidden-right">
+    <button class="nav-back" onclick="goTo('screen-splash')" title="Kembali">
+      <svg width="16" height="16" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    </button>
+
+    <div class="form-screen">
+      <div class="form-body">
+
+        <div class="form-header">
+          <h2>Daftar</h2>
+          <p>Bergabunglah sekarang dan dapatkan manfaat dari aplikasi kami</p>
+        </div>
+
+        <div class="field" id="f-nama">
+          <label>Nama Lengkap</label>
+          <div class="input-wrap">
+            <input type="text" id="daftar-nama" placeholder="Nama lengkap" autocomplete="name"/>
+          </div>
+          <span class="err-msg">Nama tidak boleh kosong.</span>
+        </div>
+
+        <div class="field" id="f-email-d">
+          <label>Alamat Email</label>
+          <div class="input-wrap">
+            <input type="email" id="daftar-email" placeholder="Alamat Email" autocomplete="email"/>
+          </div>
+          <span class="err-msg">Masukkan email yang valid.</span>
+        </div>
+
+        <div class="field" id="f-pw-d">
+          <label>Password</label>
+          <div class="input-wrap">
+            <input type="password" id="daftar-pw" placeholder="Ketik Kata Sandi"/>
+            <button class="toggle-pw" onclick="togglePw('daftar-pw', this)" tabindex="-1">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+              </svg>
+            </button>
+          </div>
+          <span class="err-msg">Password minimal 6 karakter.</span>
+        </div>
+
+        <div class="check-row">
+          <input type="checkbox" id="agree-daftar"/>
+          <label for="agree-daftar">
+            saya menyetujui <a href="#">syarat dan ketentuan yang berlaku</a>
+          </label>
+        </div>
+
+        <button class="btn-primary" id="btn-daftar" onclick="submitDaftar()">
+          <span class="btn-text">Daftar</span>
+          <div class="spinner"></div>
+        </button>
+
+        <div class="divider">OR</div>
+
+        <button class="social-btn" onclick="socialLogin('Google')">
+          <div class="g-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+          </div>
+          Continue with Google
+        </button>
+
+        <button class="social-btn" onclick="socialLogin('Facebook')">
+          <div class="fb-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+            </svg>
+          </div>
+          Continue with Facebook
+        </button>
+
+        <div class="bottom-link">
+          Sudah punya akun? <a href="#" onclick="goTo('screen-masuk'); return false;">Klik disini</a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ==============================
+       SCREEN 3 – MASUK (Login)
+  =============================== -->
+  <div id="screen-masuk" class="screen hidden-right">
+    <button class="nav-back" onclick="goTo('screen-daftar')" title="Kembali">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    </button>
+
+    <div class="form-screen">
+      <div class="form-body">
+
+        <div class="form-header">
+          <h2>Masuk</h2>
+          <p>Masuk ke akunmu dan nikmati pengalaman baru dengan aplikasi kami</p>
+        </div>
+
+        <div class="field" id="f-email-m">
+          <label>Alamat Email</label>
+          <div class="input-wrap">
+            <input type="email" id="masuk-email" placeholder="Alamat Email" autocomplete="email"/>
+          </div>
+          <span class="err-msg">Masukkan email yang valid.</span>
+        </div>
+
+        <div class="field" id="f-pw-m">
+          <label>Password</label>
+          <div class="input-wrap">
+            <input type="password" id="masuk-pw" placeholder="Ketik Kata Sandi"/>
+            <button class="toggle-pw" onclick="togglePw('masuk-pw', this)" tabindex="-1">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+              </svg>
+            </button>
+          </div>
+          <span class="err-msg">Password minimal 6 karakter.</span>
+        </div>
+
+        <div class="field" id="f-cpw-m">
+          <label>Konfirmasi Password</label>
+          <div class="input-wrap">
+            <input type="password" id="masuk-cpw" placeholder="Konfirmasi Kata Sandi"/>
+            <button class="toggle-pw" onclick="togglePw('masuk-cpw', this)" tabindex="-1">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+              </svg>
+            </button>
+          </div>
+          <span class="err-msg">Password tidak cocok.</span>
+        </div>
+
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+          <div class="check-row" style="flex:1">
+            <input type="checkbox" id="agree-masuk"/>
+            <label for="agree-masuk">
+              saya menyetujui <a href="#">syarat dan ketentuan yang berlaku</a>
+            </label>
+          </div>
+          <div class="forgot-row" style="flex-shrink:0; margin-top:2px;">
+            <a href="#">Lupa Password?</a>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="btn-masuk" onclick="submitMasuk()">
+          <span class="btn-text">Masuk</span>
+          <div class="spinner"></div>
+        </button>
+
+        <div class="divider">OR</div>
+
+        <button class="social-btn" onclick="socialLogin('Google')">
+          <div class="g-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+          </div>
+          Continue with Google
+        </button>
+
+        <button class="social-btn" onclick="socialLogin('Facebook')">
+          <div class="fb-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+            </svg>
+          </div>
+          Continue with Facebook
+        </button>
+
+        <div class="bottom-link">
+          Belum punya akun? <a href="#" onclick="goTo('screen-daftar'); return false;">Klik disini</a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast" id="toast"></div>
+
+</div><!-- /phone -->
+
+<script>
+  /* ===== NAVIGATION ===== */
+  let currentScreen = 'screen-splash';
+
+  function goTo(id) {
+    const screens = ['screen-splash','screen-daftar','screen-masuk'];
+    const ci = screens.indexOf(currentScreen);
+    const ni = screens.indexOf(id);
+
+    document.getElementById(currentScreen).className = 'screen ' + (ni > ci ? 'hidden-left' : 'hidden-right');
+    const next = document.getElementById(id);
+    next.className = 'screen active';
+    currentScreen = id;
+  }
+
+  /* ===== TOGGLE PASSWORD VISIBILITY ===== */
+  function togglePw(inputId, btn) {
+    const inp = document.getElementById(inputId);
+    const isHidden = inp.type === 'password';
+    inp.type = isHidden ? 'text' : 'password';
+    btn.style.color = isHidden ? 'var(--accent)' : 'var(--text-muted)';
+  }
+
+  /* ===== TOAST ===== */
+  function showToast(msg, color = '#22c55e') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.background = color;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  /* ===== VALIDATION ===== */
+  function setError(fieldId, hasError) {
+    document.getElementById(fieldId).classList.toggle('has-error', hasError);
+  }
+
+  function validateEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  /* ===== SUBMIT DAFTAR ===== */
+  async function submitDaftar() {
+    const nama  = document.getElementById('daftar-nama').value.trim();
+    const email = document.getElementById('daftar-email').value.trim();
+    const pw    = document.getElementById('daftar-pw').value;
+    const agree = document.getElementById('agree-daftar').checked;
+
+    let ok = true;
+    setError('f-nama',    !nama);     if (!nama) ok = false;
+    setError('f-email-d', !validateEmail(email)); if (!validateEmail(email)) ok = false;
+    setError('f-pw-d',    pw.length < 6);         if (pw.length < 6) ok = false;
+
+    if (!agree) {
+      showToast('Setujui syarat & ketentuan terlebih dahulu.', '#ef4444');
+      return;
+    }
+    if (!ok) return;
+
+    // Simulate loading
+    const btn = document.getElementById('btn-daftar');
+    btn.classList.add('loading');
+    await delay(1600);
+    btn.classList.remove('loading');
+
+    showToast('✅ Akun berhasil dibuat!');
+    setTimeout(() => goTo('screen-masuk'), 500);
+  }
+
+  /* ===== SUBMIT MASUK ===== */
+  async function submitMasuk() {
+    const email = document.getElementById('masuk-email').value.trim();
+    const pw    = document.getElementById('masuk-pw').value;
+    const cpw   = document.getElementById('masuk-cpw').value;
+    const agree = document.getElementById('agree-masuk').checked;
+
+    let ok = true;
+    setError('f-email-m', !validateEmail(email)); if (!validateEmail(email)) ok = false;
+    setError('f-pw-m',    pw.length < 6);         if (pw.length < 6) ok = false;
+    setError('f-cpw-m',   pw !== cpw);            if (pw !== cpw) ok = false;
+
+    if (!agree) {
+      showToast('Setujui syarat & ketentuan terlebih dahulu.', '#ef4444');
+      return;
+    }
+    if (!ok) return;
+
+    const btn = document.getElementById('btn-masuk');
+    btn.classList.add('loading');
+    await delay(1600);
+    btn.classList.remove('loading');
+
+    showToast('🎉 Berhasil masuk! Selamat datang.');
+  }
+
+  /* ===== SOCIAL LOGIN ===== */
+  function socialLogin(provider) {
+    showToast(`Melanjutkan dengan ${provider}…`, '#4f8ef7');
+  }
+
+  function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+</body>
+</html>
